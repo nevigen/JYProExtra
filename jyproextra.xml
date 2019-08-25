@@ -2,12 +2,12 @@
 <extension version="3.9" type="plugin" group="system" method="upgrade">
 	<name>PLG_SYSTEM_JYPROEXTRA</name>
 	<author>Septdir Workshop</author>
-	<creationDate>May 2019</creationDate>
+	<creationDate>August 2019</creationDate>
 	<copyright>Copyright (c) 2018 - 2019 Septdir Workshop. All rights reserved.</copyright>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
 	<authorEmail>development@septdir.com</authorEmail>
 	<authorUrl>https://www.septdir.com/</authorUrl>
-	<version>1.1.1-dev</version>
+	<version>1.2.1-dev</version>
 	<description>PLG_SYSTEM_JYPROEXTRA_DESCRIPTION</description>
 	<scriptfile>script.php</scriptfile>
 	<languages folder="language">
@@ -22,92 +22,84 @@
 		<folder>forms</folder>
 		<folder>templates</folder>
 		<filename plugin="jyproextra">jyproextra.php</filename>
+		<filename>donate_message.php</filename>
+		<filename>toolbar.php</filename>
 	</files>
 	<config>
 		<fields name="params">
-			<fieldset name="child" label="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD">
-				<field name="child_layouts" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_LAYOUTS"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_LAYOUTS_DESC"
-					   class="btn-group btn-group-yesno"
-					   default="1">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
-				<field name="child_views" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_VIEWS"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_VIEWS_DESC"
-					   class="btn-group btn-group-yesno"
-					   default="1">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
-				<field name="child_modules" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_MODULES"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_MODULES_DESC"
-					   class="btn-group btn-group-yesno"
-					   default="1">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
-				<field name="child_languages" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_LANGUAGES"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_CHILD_LANGUAGES_DESC"
-					   class="btn-group btn-group-yesno"
-					   default="1">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
-			</fieldset>
-			<fieldset name="images" label="PLG_SYSTEM_JYPROEXTRA_PARAMS_IMAGES">
-				<field name="images_handler" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_IMAGES_HANDLER"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_IMAGES_HANDLER_DESC"
+			<fieldset name="basic">
+				<field type="toolbar" addfieldpath="/plugins/system/jyproextra"/>
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_IMAGES"
+					   description="PLG_SYSTEM_JYPROEXTRA_IMAGES_DESC"/>
+				<field name="images" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
 					   class="btn-group btn-group-yesno"
 					   default="0">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-			</fieldset>
-			<fieldset name="scripts" label="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS">
-				<field name="scripts_remove_jquery" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_JQUERY"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_JQUERY_DESC"
+				<field type="spacer" hr="true"/>
+
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_INLINE"
+					   description="PLG_SYSTEM_JYPROEXTRA_INLINE_DESC"/>
+				<field name="inline" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
 					   class="btn-group btn-group-yesno"
 					   default="0">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="scripts_remove_bootstrap" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_BOOTSTRAP"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_BOOTSTRAP_DESC"
+				<field type="spacer" hr="true"/>
+
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_UNSET_MODULES"
+					   description="PLG_SYSTEM_JYPROEXTRA_UNSET_MODULES_DESC"/>
+				<field name="unset_modules" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
 					   class="btn-group btn-group-yesno"
 					   default="0">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="scripts_remove_core" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_CORE"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_CORE_DESC"
+				<field type="spacer" hr="true"/>
+
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_CHILD"
+					   description="PLG_SYSTEM_JYPROEXTRA_CHILD_DESC"/>
+				<field name="child" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
 					   class="btn-group btn-group-yesno"
 					   default="0">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="scripts_remove_keepalive" type="radio"
-					   label="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_KEEPALIVE"
-					   description="PLG_SYSTEM_JYPROEXTRA_PARAMS_SCRIPTS_REMOVE_KEEPALIVE_DESC"
+				<field type="spacer" hr="true"/>
+
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_REMOVE_JS"
+					   description="PLG_SYSTEM_JYPROEXTRA_REMOVE_JS_DESC"/>
+				<field name="remove_js" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
 					   class="btn-group btn-group-yesno"
 					   default="0">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field type="spacer" hr="true"/>
+
+				<field type="note" label="PLG_SYSTEM_JYPROEXTRA_PAGINATION"
+					   description="PLG_SYSTEM_JYPROEXTRA_PAGINATION_DESC"/>
+				<field name="pagination" type="radio"
+					   label="PLG_SYSTEM_JYPROEXTRA_ENABLE"
+					   class="btn-group btn-group-yesno"
+					   default="0">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field type="spacer" hr="true"/>
 			</fieldset>
 		</fields>
 	</config>
 	<updateservers>
-		<server type="extension" priority="1" name="JYProExtra">
-			https://www.septdir.com/marketplace/joomla/update?element=plg_system_jyproextra
+		<server type="extension" priority="1" name="jYProExtra">
+			https://www.septdir.com/solutions/joomla/update?element=plg_system_jyproextra
 		</server>
 	</updateservers>
 </extension>

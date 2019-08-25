@@ -1,6 +1,6 @@
 <?php
 /**
- * @package    Joomla YooThemePro Extra System Plugin
+ * @package    jYProExtra System Plugin
  * @version    __DEPLOY_VERSION__
  * @author     Septdir Workshop - www.septdir.com
  * @copyright  Copyright (c) 2018 - 2019 Septdir Workshop. All rights reserved.
@@ -11,6 +11,8 @@
 namespace Joomla\CMS\MVC\View;
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Filesystem\Path;
 
 class HtmlView extends HtmlViewCore
 {
@@ -29,9 +31,10 @@ class HtmlView extends HtmlViewCore
 		{
 			foreach ($this->_path['template'] as $path)
 			{
-				if (preg_match('/templates\/yootheme\//', $path))
+				// Add child
+				if (preg_match('#(.*)[\\\/]templates[\\\/]yootheme[\\\/](.*)$#', $path, $matches))
 				{
-					$child = str_replace('templates/yootheme/', 'templates/yootheme_' . YOOTHEME_CHILD . '/', $path);
+					$child = Path::clean($matches[1] . '/templates/yootheme_' . YOOTHEME_CHILD . '/' . $matches[2]);
 					if (!in_array($child, $this->_path['template']))
 					{
 						$this->_addPath('template', $child);
@@ -39,5 +42,28 @@ class HtmlView extends HtmlViewCore
 				}
 			}
 		}
+
+		// Clean template paths
+		$this->_path['template'] = array_unique($this->_path['template']);
+	}
+
+	/**
+	 * Sets the layout name to use.
+	 *
+	 * @param   string  $layout  The layout name or a string in format <template>:<layout file>
+	 *
+	 * @return  string  Previous value.
+	 *
+	 * @since   1.2.0
+	 */
+	public function setLayout($layout)
+	{
+		// Fix yootheme child layout
+		if (preg_match('#^yootheme_(.*):(.*)#', $layout, $matches))
+		{
+			$layout = 'yootheme:' . $matches[2];
+		}
+
+		return  parent::setLayout($layout);
 	}
 }

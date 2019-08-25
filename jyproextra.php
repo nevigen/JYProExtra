@@ -1,6 +1,6 @@
 <?php
 /**
- * @package    Joomla YooThemePro Extra System Plugin
+ * @package    jYProExtra System Plugin
  * @version    __DEPLOY_VERSION__
  * @author     Septdir Workshop - www.septdir.com
  * @copyright  Copyright (c) 2018 - 2019 Septdir Workshop. All rights reserved.
@@ -10,6 +10,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
@@ -24,6 +25,15 @@ use Joomla\Registry\Registry;
 class PlgSystemJYProExtra extends CMSPlugin
 {
 	/**
+	 * Loads the application object.
+	 *
+	 * @var  CMSApplication
+	 *
+	 * @since  1.2.0
+	 */
+	protected $app = null;
+
+	/**
 	 * Affects constructor behavior.
 	 *
 	 * @var  boolean
@@ -33,21 +43,93 @@ class PlgSystemJYProExtra extends CMSPlugin
 	protected $autoloadLanguage = true;
 
 	/**
-	 * Set child constant and override classes.
+	 * Image function enable.
 	 *
-	 * @throws  Exception
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $images = false;
+
+	/**
+	 * Inline files function enable.
+	 *
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $inline = false;
+
+	/**
+	 * Exclude Modules function enable.
+	 *
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $unset_modules = false;
+
+	/**
+	 * Child theme function enable.
+	 *
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $child = false;
+
+	/**
+	 * Removing JavaScripts function enable.
+	 *
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $remove_js = false;
+
+	/**
+	 * Pagination function enable.
+	 *
+	 * @var  boolean
+	 *
+	 * @since  1.2.0
+	 */
+	protected $pagination = false;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param   object  &$subject  The object to observe
+	 * @param   array    $config   An optional associative array of configuration settings.
+	 *
+	 * @since   1.2.0
+	 */
+	public function __construct(&$subject, $config = array())
+	{
+		parent::__construct($subject, $config);
+
+		// Set functions status
+		$this->images        = ($this->params->get('images')) ? true : false;
+		$this->inline        = ($this->params->get('inline')) ? true : false;
+		$this->unset_modules = ($this->params->get('unset_modules')) ? true : false;
+		$this->child         = ($this->params->get('child')) ? true : false;
+		$this->remove_js     = ($this->params->get('remove_js')) ? true : false;
+		$this->pagination    = ($this->params->get('pagination')) ? true : false;
+	}
+
+	/**
+	 * Set child constant and override classes.
 	 *
 	 * @since  1.0.1
 	 */
 	public function onAfterInitialise()
 	{
-		$app = Factory::getApplication();
-		if ($app->isClient('site'))
+		if ($this->child && $this->app->isClient('site'))
 		{
-			$template = $app->getTemplate();
+			$template = $this->app->getTemplate();
 			if ($template === 'yootheme')
 			{
-				$params = $app->getTemplate(true)->params->get('config');
+				$params = $this->app->getTemplate(true)->params->get('config');
 				$params = new Registry($params);
 
 				if ($child = $params->get('child_theme'))
@@ -56,60 +138,13 @@ class PlgSystemJYProExtra extends CMSPlugin
 					define('YOOTHEME_CHILD', $child);
 
 					// Override FileLayout class
-					if ($this->params->get('child_layouts', 1))
-					{
-						$this->overrideClass('FileLayout');
-					}
+					$this->overrideClass('FileLayout');
 
 					// Override HtmlView class
-					if ($this->params->get('child_views', 1))
-					{
-						$this->overrideClass('HtmlView');
-					}
+					$this->overrideClass('HtmlView');
 
 					// Override ModuleHelper class
-					if ($this->params->get('child_modules', 1))
-					{
-						$this->overrideClass('ModuleHelper');
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Load child languages.
-	 *
-	 * @throws  Exception
-	 *
-	 * @since  1.0.0
-	 */
-	public function onAfterRoute()
-	{
-		$app = Factory::getApplication();
-		if ($app->isClient('site'))
-		{
-			if (defined('YOOTHEME_CHILD'))
-			{
-				// Load child site languages
-				if ($this->params->get('child_languages', 1))
-				{
-					$language = Factory::getLanguage();
-					$language->load('tpl_yootheme_' . YOOTHEME_CHILD, JPATH_SITE, $language->getTag(), true);
-				}
-			}
-		}
-
-		// Load child languages in control panel
-		if ($app->isClient('administrator') && $this->params->get('child_languages', 1))
-		{
-			if ($child = Folder::folders(JPATH_SITE . '/templates', 'yootheme_', false))
-			{
-				$language = Factory::getLanguage();
-
-				foreach ($child as $template)
-				{
-					$language->load('tpl_' . $template . '.sys', JPATH_SITE, $language->getTag(), true);
+					$this->overrideClass('ModuleHelper');
 				}
 			}
 		}
@@ -126,8 +161,8 @@ class PlgSystemJYProExtra extends CMSPlugin
 	{
 		$classes = array(
 			'FileLayout'   => JPATH_ROOT . '/libraries/src/Layout/FileLayout.php',
-			'ModuleHelper' => JPATH_ROOT . '/libraries/src/Helper/ModuleHelper.php',
 			'HtmlView'     => JPATH_ROOT . '/libraries/src/MVC/View/HtmlView.php',
+			'ModuleHelper' => JPATH_ROOT . '/libraries/src/Helper/ModuleHelper.php',
 		);
 
 		if (!empty($classes[$class]) && !class_exists($class))
@@ -157,24 +192,112 @@ class PlgSystemJYProExtra extends CMSPlugin
 	}
 
 	/**
-	 * Change fields types and add params.
-	 *
-	 * @param   Form   $form  The form to be altered.
-	 * @param   mixed  $data  The associated data for the form.
+	 * Load child languages and enable pagination for all components.
 	 *
 	 * @since  1.0.0
 	 */
-	public function onContentPrepareForm($form, $data)
+	public function onAfterRoute()
 	{
-		$formName = $form->getName();
-		if (in_array($formName, array('com_modules.module', 'com_advancedmodules.module', 'com_config.modules')))
+		if ($this->app->isClient('site'))
 		{
-			// Child modules
-			if ($this->params->get('child_modules', 1))
+			// Load child site languages
+			if ($this->child && defined('YOOTHEME_CHILD'))
 			{
-				$this->changeFieldType($form, 'layout', 'yooModuleLayout', 'params');
+				$language = Factory::getLanguage();
+				$language->load('tpl_yootheme_' . YOOTHEME_CHILD, JPATH_SITE, $language->getTag(), true);
 			}
 
+			// Enable pagination for all components
+			if ($this->pagination
+				&& !in_array($this->app->input->get('option'), array('com_content', 'com_finder', 'com_search', 'com_tags')))
+			{
+				$this->overridePagination();
+			}
+		}
+
+		// Load child languages in control panel
+		if ($this->child && $this->app->isClient('administrator'))
+		{
+			if ($child = Folder::folders(Path::clean(JPATH_SITE . '/templates'), '^yootheme_', false))
+			{
+				$language = Factory::getLanguage();
+
+				foreach ($child as $template)
+				{
+					$language->load('tpl_' . $template . '.sys', JPATH_SITE, $language->getTag(), true);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to override pagination for enabled on all components.
+	 *
+	 * @since  1.2.0
+	 */
+	protected function overridePagination()
+	{
+		// Create pagination_all file
+		$src     = Path::clean(JPATH_THEMES . '/yootheme/html/pagination.php');
+		$dest    = Path::clean(JPATH_THEMES . '/yootheme/html/jyproextra-pagination.php');
+		$context = file_get_contents($src);
+		$context = preg_replace('#if(.?)*#', '', $context, 1);
+		$context = trim($context);
+		$context = rtrim($context, '}');
+		if (File::exists($dest))
+		{
+			File::delete($dest);
+		}
+		file_put_contents($dest, $context);
+
+		// Override Pagination Class
+		$src     = Path::clean(JPATH_ROOT . '/libraries/src/Pagination/Pagination.php');
+		$dest    = Path::clean(__DIR__ . '/classes/Pagination.php');
+		$context = str_replace('pagination.php', 'jyproextra-pagination.php', file_get_contents($src));
+		if (File::exists($dest))
+		{
+			File::delete($dest);
+		}
+		file_put_contents($dest, $context);
+		require_once $dest;
+	}
+
+	/**
+	 * Change fields types and add fields.
+	 *
+	 * @param   Form  $form  The form to be altered.
+	 *
+	 * @since  1.0.0
+	 */
+	public function onContentPrepareForm($form)
+	{
+		// Change fields type for child theme
+		if ($this->child)
+		{
+			$types = array(
+				'ModuleLayout'    => 'YooModuleLayout',
+				'ComponentLayout' => 'YooComponentLayout'
+			);
+			Form::addFieldPath(__DIR__ . '/fields');
+			foreach ($form->getFieldsets() as $fieldset)
+			{
+				foreach ($form->getFieldset($fieldset->name) as $field)
+				{
+					$type = $field->__get('type');
+					if (isset($types[$type]))
+					{
+						$name  = $field->__get('fieldname');
+						$group = $field->__get('group');
+						$form->setFieldAttribute($name, 'type', $types[$type], $group);
+					}
+				}
+			}
+		}
+
+		// Change modules form
+		if ($this->unset_modules
+			&& in_array($form->getName(), array('com_modules.module', 'com_advancedmodules.module', 'com_config.modules')))
+		{
 			// Add params
 			Form::addFormPath(__DIR__ . '/forms');
 			$form->loadFile('module');
@@ -182,132 +305,192 @@ class PlgSystemJYProExtra extends CMSPlugin
 	}
 
 	/**
-	 * Method to change field type.
+	 * Method to unset modules based on module params.
 	 *
-	 * @param   Form    $form   Current form object.
-	 * @param   string  $field  Field name.
-	 * @param   string  $type   New field type.
-	 * @param   string  $group  Field group.
+	 * @param   array  $modules  The modules array.
 	 *
-	 * @since   1.0.0
+	 * @since  1.1.0
 	 */
-	protected function changeFieldType(&$form = null, $field = null, $type = null, $group = null)
+	public function onAfterCleanModuleList(&$modules)
 	{
-		if (!empty($form) && !empty($field) && !empty($type))
+		if ($this->unset_modules && !empty($modules) && $this->app->isClient('site')
+			&& $this->app->getTemplate() === 'yootheme')
 		{
-			Form::addFieldPath(__DIR__ . '/fields');
-			$form->setFieldAttribute($field, 'type', $type, $group);
+			$resetKeys  = false;
+			$customizer = (!empty($this->app->input->get('customizer')));
+			$component  = $this->app->input->get('option');
+			$view       = $this->app->input->get('view');
+
+			foreach ($modules as $key => $module)
+			{
+				$params = new Registry($module->params);
+
+				// Unset in YOOtheme Pro customizer
+				if ($params->get('unset_customizer') && $customizer)
+				{
+					$resetKeys = true;
+					unset($modules[$key]);
+				}
+
+				// Unset in com_content views
+				elseif ($component == 'com_content' && $params->get('unset_content')
+					&& in_array($view, $params->get('unset_content')))
+				{
+					$resetKeys = true;
+					unset($modules[$key]);
+				}
+
+				// Unset empty content modules
+				elseif ($params->get('unset_empty') && empty(trim(ModuleHelper::renderModule($module))))
+				{
+					$resetKeys = true;
+					unset($modules[$key]);
+				}
+			}
+
+			// Reset modules array keys
+			if ($resetKeys)
+			{
+				$modules = array_values($modules);
+			}
+		}
+	}
+
+	/**
+	 * Method to unset module based on module params.
+	 *
+	 * @param   object  $module  The module object.
+	 *
+	 * @since  1.1.0
+	 */
+	public function onRenderModule(&$module)
+	{
+		if ($this->unset_modules && !empty($module->params) && $this->app->isClient('site')
+			&& $this->app->getTemplate() === 'yootheme')
+		{
+			$params     = new Registry($module->params);
+			$customizer = (!empty($this->app->input->get('customizer')));
+			$component  = $this->app->input->get('option');
+			$view       = $this->app->input->get('view');
+
+			// Unset in YOOtheme Pro customizer
+			if ($params->get('unset_customizer') && $customizer)
+			{
+				$module = null;
+			}
+
+			// Unset in com_content views
+			elseif ($component == 'com_content' && $params->get('unset_content')
+				&& in_array($view, $params->get('unset_content')))
+			{
+				$module = null;
+			}
+
+			// Unset empty content modules
+			elseif ($params->get('unset_empty') && empty(trim($module->content)))
+			{
+				$module = null;
+			}
+		}
+	}
+
+	/**
+	 * Method to include inline files contents to head.
+	 *
+	 * @since  1.2.0
+	 */
+	public function onBeforeCompileHead()
+	{
+		if ($this->inline && $this->app->isClient('site') && $this->app->getTemplate() === 'yootheme')
+		{
+			$doc = Factory::getDocument();
+
+			// JavaScripts
+			$pathsJS = array(
+				Path::clean(JPATH_THEMES . '/yootheme/js/inline.min.js'),
+				Path::clean(JPATH_THEMES . '/yootheme/js/inline.js'),
+			);
+			if ($this->child && defined('YOOTHEME_CHILD'))
+			{
+				$pathsJS = array_merge(array(
+					Path::clean(JPATH_THEMES . '/yootheme_' . YOOTHEME_CHILD . '/js/inline.min.js'),
+					Path::clean(JPATH_THEMES . '/yootheme_' . YOOTHEME_CHILD . '/js/inline.js'),
+				), $pathsJS);
+			}
+			foreach ($pathsJS as $path)
+			{
+				if (file_exists($path))
+				{
+					$doc->addScriptDeclaration(file_get_contents($path));
+					break;
+				}
+			}
+
+			// Stylesheets
+			$pathsJS = array(
+				Path::clean(JPATH_THEMES . '/yootheme/css/inline.min.css'),
+				Path::clean(JPATH_THEMES . '/yootheme/css/inline.css'),
+			);
+			if (defined('YOOTHEME_CHILD'))
+			{
+				$pathsJS = array_merge(array(
+					Path::clean(JPATH_THEMES . '/yootheme_' . YOOTHEME_CHILD . '/css/inline.min.css'),
+					Path::clean(JPATH_THEMES . '/yootheme_' . YOOTHEME_CHILD . '/css/inline.css'),
+				), $pathsJS);
+			}
+			foreach ($pathsJS as $path)
+			{
+				if (file_exists($path))
+				{
+					$doc->addStyleDeclaration(file_get_contents($path));
+					break;
+				}
+			}
 		}
 	}
 
 	/**
 	 * Method to handle image and rerender head.
 	 *
-	 * @throws  Exception
-	 *
 	 * @since   1.0.0
 	 */
 	public function onAfterRender()
 	{
-		$app = Factory::getApplication();
-		if ($app->isClient('site') && $app->getTemplate() === 'yootheme' && $app->input->get('format', 'html') == 'html'
-			&& !$app->input->get('customizer'))
+		if (($this->images || $this->remove_js) && $this->app->isClient('site')
+			&& $this->app->getTemplate() === 'yootheme' && $this->app->input->get('format', 'html') == 'html'
+			&& !$this->app->input->get('customizer'))
 		{
-			$body = $app->getBody();
-			if ($this->params->get('images_handler', 0))
+			$body = $this->app->getBody();
+
+			// Convert images
+			if ($this->images)
 			{
-				$this->imagesHandler($body);
+				$this->convertImages($body);
 			}
 
-			if ($this->params->get('scripts_remove_jquery', 0)
-				|| $this->params->get('scripts_remove_bootstrap', 0)
-				|| $this->params->get('scripts_remove_core', 0)
-				|| $this->params->get('scripts_remove_keepalive', 0))
+			if ($this->remove_js)
 			{
-				$this->cleanHead($body);
+				$this->removeJS($body);
 			}
 
-			$app->setBody($body);
+			$this->app->setBody($body);
 		}
 	}
 
 	/**
-	 * Method for cleaning head.
+	 * Method to convert site images.
 	 *
-	 * @param   string  $body  Page html.
+	 * @param   string  $body  Current page html.
 	 *
-	 * @since  1.0.0
+	 * @since  1.2.0
 	 */
-	protected function cleanHead(&$body = '')
-	{
-		$unsetScripts  = array();
-		$replaceScript = array();
-
-		// Remove jQuery
-		if ($this->params->get('scripts_remove_jquery', 0))
-		{
-			$unsetScripts[] = '/media/jui/js/jquery';
-			$unsetScripts[] = '/media/jui/js/jquery-noconflict';
-			$unsetScripts[] = '/media/jui/js/jquery-migrate';
-
-			$replaceScript[] = '~jQuery\(function\(\$\){.*?(\$\((?!document\).ready).*?\}\);).*?}\);~sim';
-			$replaceScript[] = '/jQuery\(function\(\$\)\{(.?)*\}\)\;/';
-		}
-
-		// Remove Bootstrap
-		if ($this->params->get('scripts_remove_bootstrap', 0))
-		{
-			$unsetScripts[] = '/media/jui/js/bootstrap';
-		}
-
-		// Remove Core
-		if ($this->params->get('scripts_remove_core', 0))
-		{
-			$unsetScripts[] = '/media/system/js/core';
-		}
-
-		// Remove Keepalive
-		if ($this->params->get('scripts_remove_keepalive', 0))
-		{
-			$unsetScripts[] = '/media/system/js/keepalive';
-		}
-
-		// Rerender head
-		if (!empty($unsetScripts) || !empty($replaceScript))
-		{
-			if (preg_match('|<head>(.*)</head>|si', $body, $matches))
-			{
-				$search  = $matches[1];
-				$replace = $search;
-				foreach ($unsetScripts as $src)
-				{
-					$replace = preg_replace('|<script(.?)*"' . $src . '\.(.?)*</script>|', '', $replace);
-				}
-
-				foreach ($replaceScript as $pattern)
-				{
-					$replace = preg_replace($pattern, '', $replace);
-				}
-
-				$replace = preg_replace('/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/', '', $replace);
-
-				$body = str_replace($search, $replace, $body);
-			}
-		}
-	}
-
-	/**
-	 * Method for image processing.
-	 *
-	 * @param   string  $body  Page html.
-	 *
-	 * @since  1.0.0
-	 */
-	protected function imagesHandler(&$body = '')
+	protected function convertImages(&$body = '')
 	{
 		// Check template file exist
-		if (!$this->checkFile(__DIR__ . '/templates/jyproextra-image.php',
-			JPATH_THEMES . '/yootheme/templates/jyproextra-image.php')) return;
+		$src   = Path::clean(__DIR__ . '/templates/jyproextra-image.php');
+		$dest  = Path::clean(JPATH_THEMES . '/yootheme/templates/jyproextra-image.php');
+		$exist = (!File::exists($dest)) ? File::copy($src, $dest) : true;
+		if (!$exist) return;
 
 		// Replace images
 		if (preg_match_all('/<img[^>]+>/i', $body, $matches))
@@ -379,97 +562,48 @@ class PlgSystemJYProExtra extends CMSPlugin
 	}
 
 	/**
-	 * Method to check and copy file in not exist.
+	 * Method for remove old js scripts from head.
 	 *
-	 * @param   string  $src   Path to the source file.
-	 * @param   string  $dest  The destination path.
+	 * @param   string  $body  Current page html.
 	 *
-	 * @return  boolean True if file exist or copy. False if error or empty arguments.
+	 * @since       1.2.0
 	 *
-	 * @since  1.0.0
+	 * @deprecated  Deprecated on Joomla 4.
 	 */
-	protected function checkFile($src = null, $dest = null)
+	protected function removeJS(&$body = '')
 	{
-		if (empty($src) || empty($dest)) return false;
-
-		if (!File::exists($dest))
+		if (preg_match('|<head>(.*)</head>|si', $body, $matches))
 		{
-			return File::copy($src, $dest);
-		}
+			$search  = $matches[1];
+			$replace = $search;
 
-		return true;
-	}
-
-	/**
-	 * Method to hide module content based on module params.
-	 *
-	 * @param   object  $module   The module object.
-	 * @param   array   $attribs  The render attributes.
-	 *
-	 * @throws  Exception
-	 *
-	 * @since  1.1.0
-	 */
-	public function onRenderModule(&$module, &$attribs)
-	{
-		$app = Factory::getApplication();
-		if ($app->isClient('site') && $app->getTemplate() === 'yootheme' && !empty($module->params))
-		{
-			$params = new Registry($module->params);
-
-			// Hide in customizer
-			if ($params->get('unset_customizer') && $app->input->get('customizer'))
+			// Remove js files
+			$files = array(
+				'/media/jui/js/jquery',
+				'/media/jui/js/jquery-noconflict',
+				'/media/jui/js/jquery-migrate',
+				'/media/jui/js/bootstrap',
+			);
+			foreach ($files as $src)
 			{
-				$module = null;
+				$replace = preg_replace('|<script(.?)*"' . $src . '\.(.?)*</script>|', '', $replace);
 			}
 
-			// Hide empty content modules
-			elseif ($params->get('unset_empty') && empty($module->content))
+			// Remove inline java scripts
+			$patterns = array(
+				'~jQuery\(function\(\$\){.*?(\$\((?!document\).ready).*?\}\);).*?}\);~sim',
+				'/jQuery\(function\(\$\)\{(.?)*\}\)\;/',
+			);
+			foreach ($patterns as $pattern)
 			{
-				$module = null;
-			}
-		}
-	}
-
-	/**
-	 * Method to unset modules based on module params.
-	 *
-	 * @param   array  $modules  The modules array.
-	 *
-	 * @throws  Exception
-	 *
-	 * @since  1.1.0
-	 */
-	public function onAfterCleanModuleList(&$modules)
-	{
-		$app = Factory::getApplication();
-		if ($app->isClient('site') && $app->getTemplate() === 'yootheme' && !empty($modules))
-		{
-			$resetKeys = false;
-			foreach ($modules as $key => $module)
-			{
-				$params = new Registry($module->params);
-
-				// Unset in customizer
-				if ($params->get('unset_customizer') && $app->input->get('customizer'))
-				{
-					$resetKeys = true;
-					unset($modules[$key]);
-				}
-
-				// Hide empty content modules
-				elseif ($params->get('unset_empty') && !$content = ModuleHelper::renderModule($module))
-				{
-					$resetKeys = true;
-					unset($modules[$key]);
-				}
+				$replace = preg_replace($pattern, '', $replace);
 			}
 
-			// Reset modules array keys
-			if ($resetKeys)
-			{
-				$modules = array_values($modules);
-			}
+			// Remove empty lines
+			$replace = preg_replace('/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/', '', $replace);
+
+			// Replace body
+			$body = str_replace($search, $replace, $body);
 		}
 	}
 }
